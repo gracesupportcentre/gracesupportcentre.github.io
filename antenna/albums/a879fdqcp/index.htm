@@ -1,0 +1,549 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Photo Gallery</title>
+    <meta name="generator" content="Antenna Web Design Studio">
+    <meta http-equiv="imagetoolbar" content="no">
+    <link rel="stylesheet" type="text/css" href="../../../antenna.css" id="css">
+    <script type="text/javascript" src="../../../antenna/auto.js"></script>
+    <style type="text/css">
+        .abs {
+            position: absolute
+        }
+
+        .content {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .thumbs {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .spc {
+            float: left;
+            cursor: pointer;
+            margin-left: 1px;
+            margin-top: 1px;
+        }
+
+        .tmb {
+            width: 158px;
+            height: 158px;
+            overflow: hidden;
+        }
+
+        .lrg {
+            border: 1px solid;
+            visibility: hidden;
+            border-color: transparent;
+        }
+
+        .photocaption {
+            width: 100%;
+            text-align: right;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+    </style>
+    <script type="text/javascript">
+        var sFilen;
+        var sCap;
+        var iCur = 0;
+        var iThumbContentHeight = 160;
+
+        function expandPhotoIdx(iIndex) {
+            expandPhoto(vPhotoList[iIndex][0], vPhotoList[iIndex][1]);
+        }
+
+        function expandPhoto(sFilename, sCaption) {
+            sFilen = sFilename;
+            sCap = sCaption;
+            fadeTo(document.getElementById('vlarge'), 0, 0.2);
+            setTimeout('expandPhoto2(sFilen,sCap);', 300);
+        }
+
+        function expandPhoto2(sFilename, sCaption) {
+            var p = sFilename.lastIndexOf('/');
+            if (p > -1) {
+                sFilename = sFilename.substr(p + 7)
+            }
+            ;
+            if (window.innerWidth) {
+                var iMaxWidth = window.innerWidth;
+                var iMaxHeight = window.innerHeight;
+                var iOffset = window.pageYOffset;
+            } else {
+                var iMaxWidth = document.body.offsetWidth;
+                var iMaxHeight = document.body.offsetHeight;
+                var iOffset = document.body.scrollTop;
+            }
+            var iCaptionHeight = 0;
+            document.getElementById('photocaption').innerHTML = '';
+            var iPadding = 2;
+            fadeTo(document.getElementById('content'), 21, 0.5);
+            var vContainer = document.getElementById('vlarge');
+            var vImage = document.getElementById('vlargei');
+            var vI = new Image();
+            vI.onload = function () {
+                vImage.src = sFilename;
+                var iImgWidth = vI.width + iPadding;
+                var iImgHeight = vI.height + iPadding;
+                var iTotalHeight = iImgHeight + iCaptionHeight;
+                var iShiftX = 0;
+                var iShiftY = 0;
+                var iX = (iMaxWidth - iImgWidth + iShiftX) / 2;
+                var iY = (iMaxHeight - iTotalHeight + iShiftY) / 2;
+                vContainer.style.left = iX + 'px';
+                vContainer.style.top = iY + iOffset + 'px';
+                vContainer.style.width = iImgWidth + 'px';
+                vContainer.style.height = iTotalHeight + 'px';
+                vContainer.style.visibility = 'visible';
+                fadeTo(vContainer, 100, 0.3);
+            };
+            vI.src = sFilename + '?t';
+            vI.src = sFilename;
+        }
+
+        function mouseY(e) {
+            if (e.pageY) return e.pageY; else if (e.clientY) return e.clientY; else return 0;
+        }
+
+        function mouseX(e) {
+            if (e.pageX) return e.pageX; else if (e.clientX) return e.clientX; else return 0;
+        }
+
+        function getWindowWidth() {
+            if (window.innerWidth) return window.innerWidth; else return document.body.offsetWidth;
+        }
+
+        function getWindowHeight() {
+            if (window.innerHeight) return window.innerHeight; else return document.body.offsetHeight;
+        }
+
+        var bThumbScroll = 1;
+        var vTmr;
+        var iTgt = 0;
+        var iTgt2 = 0;
+        var iNew = 0;
+        var iMPos = 0;
+        var iMax = 0;
+        var bAxis = 'y';
+        var iWindow = 1.5;
+        var vInc = new Array(8, 7, 6, 5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
+        var bReady = 0;
+
+        function calcSpeed(iP) {
+            iP = Math.round(iP / 2);
+            return vInc[iP];
+        }
+
+        function calcDamp(i, t) {
+            i = i / (5 - (Math.abs(t) / 50));
+            if (i < 0.5) {
+                i = 0.5
+            }
+            ;
+            return i;
+        }
+
+        function scrollThumbs() {
+            var iChange = (iTgt - iCur) / 16;
+            if (iChange > -.5 && iChange < 0) {
+                iChange = -.5
+            }
+            ;
+            if (iChange > 0 && iChange < .5) {
+                iChange = .5
+            }
+            ;
+            if (Math.abs(iTgt - iCur) < .5) {
+                iCur = iTgt
+            } else {
+                iCur = iCur + iChange
+            }
+            ;var iInc;
+            if (iMPos < 48 && iTgt2 > iNew) {
+                iInc = calcSpeed(iMPos);
+                if (iNew > -200) {
+                    iInc = calcDamp(iInc, iNew)
+                }
+                ;iNew = iNew + iInc
+            }
+            ;
+            if (iMPos > (iMax - 48) && iTgt2 < iNew) {
+                iInc = calcSpeed(iMax - iMPos - 1);
+                if (iNew - iTgt2 < 200) {
+                    iInc = calcDamp(iInc, iNew - iTgt2)
+                }
+                ;iNew = iNew - iInc;
+            }
+            ;
+            if (bAxis == 'y') document.getElementById('thumbs').style.top = Math.round(iNew + iCur) + 'px';
+            else document.getElementById('thumbs').style.left = Math.round(iNew + iCur) + 'px';
+        }
+
+        function startTimer() {
+            if (bThumbScroll == 1) {
+                vTmr = setInterval('scrollThumbs()', 16);
+            }
+            ;
+        };
+
+        function removePx(coord) {
+            return parseInt(coord.slice(0, -2));
+        };
+
+        function setTargetPos(e) {
+            if (bReady == 1) {
+                var iDim;
+                var iDim2;
+                var iPos;
+                if (bAxis == 'y') {
+                    iMax = getWindowHeight();
+                    iDim = iMax * iWindow;
+                    iDim2 = iThumbContentHeight;
+                    if (iDim > iDim2) {
+                        iDim = iDim2
+                    }
+                    ;iPos = mouseY(e) - 50;
+                } else {
+                    iMax = getWindowWidth();
+                    iDim = iMax * iWindow;
+                    iDim2 = 160;
+                    if (iDim > iDim2) {
+                        iDim = iDim2
+                    }
+                    ;iPos = mouseX(e) - 50;
+                }
+                var iL = iDim - iMax;
+                var iY = Math.round(iL / ((iMax - 100) / iPos));
+                if (iY > iL) iY = iL;
+                if (iY < 0) iY = 0;
+                iTgt = -iY;
+                var iL2 = iDim2 - (iMax * iWindow);
+                var iY2 = Math.round(iL2 / ((iMax - 100) / iPos));
+                if (iY2 > iL2) iY2 = iL2;
+                if (iY2 < 0) iY2 = 0;
+                iTgt2 = -iY2;
+                iMPos = iPos + 50;
+            }
+        }
+
+        function setupVars() {
+            var iW = getWindowWidth();
+            if (iW < 1) {
+                setTimeout('setupVars()', 250);
+                return;
+            }
+            ;
+            var iThumbSpc = removePx('1px');
+            var iThumbDim = removePx('158px') + iThumbSpc;
+            var iX = Math.floor(iW / iThumbDim);
+            iThumbContentHeight = (Math.ceil(vPhotoList.length / iX) * iThumbDim) + iThumbSpc;
+            var iTmp;
+            if (bAxis == 'x') {
+                iTmp = 160 - getWindowWidth()
+            } else {
+                iTmp = iThumbContentHeight - getWindowHeight()
+            }
+            ;
+            if (iTmp < 0) bThumbScroll = 0;
+            startTimer();
+            bReady = 1;
+        }
+
+        function stopTimer() {
+            if (bThumbScroll == 1) clearInterval(vTmr);
+        };
+        var vSlideShow;
+        var iSlide = 0;
+
+        function slideShowReset() {
+            iSlide = 0;
+        };
+
+        function slideShowPlay() {
+            expandPhotoIdx(iSlide);
+            iSlide = iSlide + 1;
+            if (iSlide > vPhotoList.length - 1) {
+                iSlide = 0;
+            }
+            ;vSlideShow = setTimeout('slideShowPlay()', 4.5 * 1000);
+        };
+
+        function slideShowPause() {
+            clearTimeout(vSlideShow);
+        };
+        var vPhotoList = new Array();
+        vPhotoList[0] = new Array("20140718-00001.jpg", "");
+        vPhotoList[1] = new Array("20140718-00002.jpg", "");
+        vPhotoList[2] = new Array("20140718-00003.jpg", "");
+        vPhotoList[3] = new Array("20140719-00004.jpg", "");
+        vPhotoList[4] = new Array("20140719-00005.jpg", "");
+        vPhotoList[5] = new Array("20140719-00006.jpg", "");
+        vPhotoList[6] = new Array("20140719-00007.jpg", "");
+        vPhotoList[7] = new Array("20140728-00008.jpg", "");
+        vPhotoList[8] = new Array("20140728-00009.jpg", "");
+        vPhotoList[9] = new Array("20140728-00010.jpg", "");
+        vPhotoList[10] = new Array("20140728-00011.jpg", "");
+        vPhotoList[11] = new Array("20140728-00012.jpg", "");
+        vPhotoList[12] = new Array("20140728-00013.jpg", "");
+        vPhotoList[13] = new Array("20140728-00014.jpg", "");
+        vPhotoList[14] = new Array("20140728-00015.jpg", "");
+        vPhotoList[15] = new Array("20140728-00016.jpg", "");
+        vPhotoList[16] = new Array("20140728-00017.jpg", "");
+        vPhotoList[17] = new Array("20140728-00018.jpg", "");
+        vPhotoList[18] = new Array("20140728-00019.jpg", "");
+        vPhotoList[19] = new Array("20140728-00020.jpg", "");
+        vPhotoList[20] = new Array("20140728-00021.jpg", "");
+        vPhotoList[21] = new Array("20140728-00022.jpg", "");
+
+    </script>
+
+</head>
+<body class="global" style="background-color:#ED8089;" onload="setupVars()">
+<div style="">
+    <center>
+        <div id="content" class="content" style="filter:alpha(opacity=100);">
+            <div id="thumbs" class="thumbs" onmousemove="setTargetPos(event)">
+                <div class="spc">
+                    <div id="a0" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a0');"
+                         onmouseout="rollOut('a0');">
+                        <script type="text/javascript"><!--
+                        rollInit('a0', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a0i" src="thumb-20140718-00001.jpg" alt="" onclick="expandPhotoIdx(0);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a1" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a1');"
+                         onmouseout="rollOut('a1');">
+                        <script type="text/javascript"><!--
+                        rollInit('a1', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a1i" src="thumb-20140718-00002.jpg" alt="" onclick="expandPhotoIdx(1);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a2" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a2');"
+                         onmouseout="rollOut('a2');">
+                        <script type="text/javascript"><!--
+                        rollInit('a2', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a2i" src="thumb-20140718-00003.jpg" alt="" onclick="expandPhotoIdx(2);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a3" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a3');"
+                         onmouseout="rollOut('a3');">
+                        <script type="text/javascript"><!--
+                        rollInit('a3', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a3i" src="thumb-20140719-00004.jpg" alt="" onclick="expandPhotoIdx(3);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a4" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a4');"
+                         onmouseout="rollOut('a4');">
+                        <script type="text/javascript"><!--
+                        rollInit('a4', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a4i" src="thumb-20140719-00005.jpg" alt="" onclick="expandPhotoIdx(4);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a5" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a5');"
+                         onmouseout="rollOut('a5');">
+                        <script type="text/javascript"><!--
+                        rollInit('a5', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a5i" src="thumb-20140719-00006.jpg" alt="" onclick="expandPhotoIdx(5);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a6" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a6');"
+                         onmouseout="rollOut('a6');">
+                        <script type="text/javascript"><!--
+                        rollInit('a6', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a6i" src="thumb-20140719-00007.jpg" alt="" onclick="expandPhotoIdx(6);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a7" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a7');"
+                         onmouseout="rollOut('a7');">
+                        <script type="text/javascript"><!--
+                        rollInit('a7', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a7i" src="thumb-20140728-00008.jpg" alt="" onclick="expandPhotoIdx(7);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a8" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a8');"
+                         onmouseout="rollOut('a8');">
+                        <script type="text/javascript"><!--
+                        rollInit('a8', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a8i" src="thumb-20140728-00009.jpg" alt="" onclick="expandPhotoIdx(8);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a9" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)" onmouseover="rollOver('a9');"
+                         onmouseout="rollOut('a9');">
+                        <script type="text/javascript"><!--
+                        rollInit('a9', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a9i" src="thumb-20140728-00010.jpg" alt="" onclick="expandPhotoIdx(9);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a10" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a10');" onmouseout="rollOut('a10');">
+                        <script type="text/javascript"><!--
+                        rollInit('a10', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a10i" src="thumb-20140728-00011.jpg" alt="" onclick="expandPhotoIdx(10);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a11" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a11');" onmouseout="rollOut('a11');">
+                        <script type="text/javascript"><!--
+                        rollInit('a11', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a11i" src="thumb-20140728-00012.jpg" alt="" onclick="expandPhotoIdx(11);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a12" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a12');" onmouseout="rollOut('a12');">
+                        <script type="text/javascript"><!--
+                        rollInit('a12', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a12i" src="thumb-20140728-00013.jpg" alt="" onclick="expandPhotoIdx(12);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a13" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a13');" onmouseout="rollOut('a13');">
+                        <script type="text/javascript"><!--
+                        rollInit('a13', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a13i" src="thumb-20140728-00014.jpg" alt="" onclick="expandPhotoIdx(13);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a14" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a14');" onmouseout="rollOut('a14');">
+                        <script type="text/javascript"><!--
+                        rollInit('a14', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a14i" src="thumb-20140728-00015.jpg" alt="" onclick="expandPhotoIdx(14);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a15" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a15');" onmouseout="rollOut('a15');">
+                        <script type="text/javascript"><!--
+                        rollInit('a15', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a15i" src="thumb-20140728-00016.jpg" alt="" onclick="expandPhotoIdx(15);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a16" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a16');" onmouseout="rollOut('a16');">
+                        <script type="text/javascript"><!--
+                        rollInit('a16', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a16i" src="thumb-20140728-00017.jpg" alt="" onclick="expandPhotoIdx(16);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a17" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a17');" onmouseout="rollOut('a17');">
+                        <script type="text/javascript"><!--
+                        rollInit('a17', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a17i" src="thumb-20140728-00018.jpg" alt="" onclick="expandPhotoIdx(17);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a18" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a18');" onmouseout="rollOut('a18');">
+                        <script type="text/javascript"><!--
+                        rollInit('a18', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a18i" src="thumb-20140728-00019.jpg" alt="" onclick="expandPhotoIdx(18);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a19" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a19');" onmouseout="rollOut('a19');">
+                        <script type="text/javascript"><!--
+                        rollInit('a19', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a19i" src="thumb-20140728-00020.jpg" alt="" onclick="expandPhotoIdx(19);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a20" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a20');" onmouseout="rollOut('a20');">
+                        <script type="text/javascript"><!--
+                        rollInit('a20', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a20i" src="thumb-20140728-00021.jpg" alt="" onclick="expandPhotoIdx(20);">
+                        </center>
+                    </div>
+                </div>
+                <div class="spc">
+                    <div id="a21" class="tmb" style="opacity:0.8; filter:alpha(opacity=80)"
+                         onmouseover="rollOver('a21');" onmouseout="rollOut('a21');">
+                        <script type="text/javascript"><!--
+                        rollInit('a21', '', '', 100, 0.3, '', '', '');
+                        // --></script>
+                        <center><img id="a21i" src="thumb-20140728-00022.jpg" alt="" onclick="expandPhotoIdx(21);">
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </center>
+</div>
+<div id="vlarge" class="abs hid lrg opr ptr" style="top:10px; left:10px; width:100px; height:100px;
+ opacity:0.02; filter:alpha(opacity=1);"><img id="vlargei" alt=""
+                                              onclick="fadeTo(document.getElementById('vlarge'),0,0.5); fadeTo(document.getElementById('content'),100,0.75); setTimeout('document.getElementById (\'vlarge\').style.visibility=\'hidden\';',600);">
+    <br>
+    <div id="photocaption" class="photocaption">Photo Caption</div>
+</div>
+</body>
+</html>
